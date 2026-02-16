@@ -239,7 +239,7 @@
   /* ===========================
      9. INTERSECTION OBSERVER — REVEAL ON SCROLL
      =========================== */
-  const revealElements = document.querySelectorAll('.reveal');
+  const revealElements = document.querySelectorAll('.reveal, .reveal--left, .reveal--right, .reveal--scale');
 
   const revealObserver = new IntersectionObserver(
     (entries) => {
@@ -251,12 +251,20 @@
       });
     },
     {
-      threshold: 0.12,
-      rootMargin: '0px 0px -40px 0px',
+      threshold: 0.1,
+      rootMargin: '0px 0px -60px 0px',
     }
   );
 
   revealElements.forEach((el) => revealObserver.observe(el));
+
+  // Auto-stagger children within skill groups, cert grids, project grids
+  document.querySelectorAll('.skill-group__cards, .cert-grid, .projects__grid, .about__stats').forEach((container) => {
+    const children = container.querySelectorAll('.reveal, .reveal--scale');
+    children.forEach((child, i) => {
+      child.setAttribute('data-delay', Math.min(i + 1, 5));
+    });
+  });
 
   /* ===========================
      10. SKILL BARS — ANIMATE ON SCROLL
@@ -328,13 +336,13 @@
       const y = e.clientY - rect.top;
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
-      const rotateX = ((y - centerY) / centerY) * -8;
-      const rotateY = ((x - centerX) / centerX) * 8;
-      inner.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      const rotateX = ((y - centerY) / centerY) * -10;
+      const rotateY = ((x - centerX) / centerX) * 10;
+      inner.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03, 1.03, 1.03)`;
     });
 
     card.addEventListener('mouseleave', () => {
-      inner.style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+      inner.style.transform = 'perspective(600px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
     });
   });
 
@@ -465,15 +473,27 @@
   const heroShapes = document.querySelector('.hero__shapes');
 
   if (heroShapes && window.matchMedia('(hover: hover)').matches) {
+    let pMouseX = 0, pMouseY = 0;
+    let pCurrentX = 0, pCurrentY = 0;
+
     window.addEventListener('mousemove', (e) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      pMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      pMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    function animateParallax() {
+      pCurrentX += (pMouseX - pCurrentX) * 0.06;
+      pCurrentY += (pMouseY - pCurrentY) * 0.06;
 
       heroShapes.querySelectorAll('.shape').forEach((shape, i) => {
-        const speed = (i + 1) * 8;
-        shape.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+        const speed = (i + 1) * 10;
+        const rotateAmount = pCurrentX * (i + 1) * 3;
+        shape.style.transform = `translate(${pCurrentX * speed}px, ${pCurrentY * speed}px) rotate(${rotateAmount}deg)`;
       });
-    });
+
+      requestAnimationFrame(animateParallax);
+    }
+    animateParallax();
   }
 
   /* ===========================
